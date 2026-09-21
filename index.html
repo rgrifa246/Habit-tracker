@@ -15,6 +15,8 @@
         .backup-controls{display:flex;gap:6px;flex-wrap:wrap;justify-content:end;margin-top:10px}
         .backup-controls button{border:1px solid var(--line);border-radius:9px;background:var(--card);padding:7px 9px;cursor:pointer;font:11px Arial,sans-serif}
         .backup-controls button:hover{background:var(--ink);color:#fff}
+        .backup-controls .clear-today{border-color:#e6b8b2;color:var(--bad)}
+        .backup-controls .clear-today:hover{background:var(--bad);color:#fff}
         .sync-status{color:var(--muted);font:10px Arial,sans-serif;text-align:right;margin-top:6px;max-width:240px}
         .privacy-note{color:var(--muted);font:10px/1.4 Arial,sans-serif;text-align:right;max-width:240px;margin-top:4px}
         .brand{display:flex;align-items:center;gap:12px}
@@ -55,11 +57,39 @@
         .total{font:bold 32px Arial,sans-serif;letter-spacing:-.08em}
         .total-caption{color:var(--muted);font:10px Arial,sans-serif;margin-top:3px}
         .affirmation{margin-top:12px;padding:8px 10px;border-radius:10px;background:var(--good-bg);color:#1d4334;font:11px Arial,sans-serif;border:1px solid #cae4d3;min-height:34px;display:flex;align-items:center}
+        .affirmation.message-pop{animation:message-pop .45s ease-out}
         
         /* Separate Line Graph Window */
         .analytics-panel{padding:18px}
         .analytics-panel h3{font-size:18px;letter-spacing:-.04em;margin-bottom:4px}
         .analytics-desc{color:var(--muted);font:11px Arial,sans-serif;margin-bottom:12px}
+        .balance{padding:14px 0 16px;border-bottom:1px solid var(--line);margin-bottom:16px}
+        .balance-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:10px}
+        .balance-label{color:var(--muted);font:10px/1.3 monospace;letter-spacing:.08em;text-transform:uppercase}
+        .balance-score{font:bold 24px Arial,sans-serif;letter-spacing:-.06em;margin-top:3px}
+        .balance-summary{color:var(--muted);font:11px Arial,sans-serif;text-align:right}
+        .balance-meter{display:flex;overflow:hidden;height:18px;border-radius:6px;background:#f0eeea}
+        .balance-meter span{min-width:0;transition:width .25s ease}
+        .balance-meter .good{background:var(--good)}
+        .balance-meter .avoid{background:var(--avoid)}
+        .balance-meter .woot{background:var(--woot)}
+        .balance-meter .bad{background:var(--bad)}
+        .balance-days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:11px}
+        .balance-day{min-width:0;text-align:center}
+        .balance-day-bar{display:flex;flex-direction:column;justify-content:flex-end;height:54px;overflow:hidden;border-radius:5px 5px 2px 2px;background:#f0eeea}
+        .balance-day-bar i{display:block;min-height:0}
+        .balance-day-bar .good{background:var(--good)}
+        .balance-day-bar .avoid{background:var(--avoid)}
+        .balance-day-bar .woot{background:var(--woot)}
+        .balance-day-bar .bad{background:var(--bad)}
+        .balance-day-label{color:var(--muted);font:10px monospace;margin-top:5px}
+        .balance-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;color:var(--muted);font:10px Arial,sans-serif}
+        .balance-legend span{display:flex;align-items:center;gap:5px}
+        .balance-legend i{width:7px;height:7px;border-radius:50%}
+        .balance-legend .good{background:var(--good)}
+        .balance-legend .avoid{background:var(--avoid)}
+        .balance-legend .woot{background:var(--woot)}
+        .balance-legend .bad{background:var(--bad)}
         .graph-container{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:10px 12px 8px;height:180px;position:relative}
         .graph-container svg{display:block;width:100%;height:100%;overflow:visible}
         .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
@@ -68,7 +98,18 @@
         .stat-value{font:bold 22px Arial,sans-serif;margin-top:4px}
         .stat-change{color:var(--good);font:10px Arial,sans-serif;margin-top:3px}
         .stat-change.down{color:var(--bad)}
-        .notice{position:fixed;right:18px;bottom:18px;z-index:2;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:var(--ink);color:#fff;font:12px Arial,sans-serif;box-shadow:0 8px 20px #31403830}
+        .notice{position:fixed;left:50%;bottom:24px;z-index:2;display:flex;align-items:center;gap:9px;max-width:min(420px,calc(100vw - 28px));padding:10px 12px 10px 17px;border:1px solid #ffffff2b;border-radius:14px;background:var(--ink);color:#fff;font:600 12px/1.3 Arial,sans-serif;box-shadow:0 12px 28px #31403845;transform:translate(-50%,12px);opacity:0}
+        .notice-message{flex:1}
+        .notice button{border:1px solid #ffffff66;border-radius:8px;padding:6px 9px;background:transparent;color:#fff;cursor:pointer;font:bold 11px Arial,sans-serif;white-space:nowrap}
+        .notice button:hover{background:#ffffff1c}
+        .notice:not([hidden]){animation:notice-pop .35s ease-out forwards}
+        .notice::before{content:'✓';display:grid;place-items:center;width:21px;height:21px;border-radius:50%;background:var(--good);color:#fff;font:bold 13px Arial;flex:none}
+        .notice.avoid::before{content:'−';background:var(--avoid)}
+        .notice.bad::before{content:'!';background:var(--bad)}
+        .notice.woot::before{content:'★';background:var(--woot);font-size:11px}
+        @keyframes notice-pop{0%{transform:translate(-50%,12px) scale(.94);opacity:0}70%{transform:translate(-50%,-2px) scale(1.02);opacity:1}100%{transform:translate(-50%,0) scale(1);opacity:1}}
+        @keyframes message-pop{0%{transform:scale(.98);opacity:.4}60%{transform:scale(1.02)}100%{transform:scale(1);opacity:1}}
+        @media(max-width:500px){.notice{bottom:14px}}
 
         .calendar{padding:24px}
         .calendar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
@@ -98,7 +139,7 @@
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
-    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden><span id="notice-message" class="notice-message"></span><button id="undo-action" type="button" hidden>Undo</button></div>
     <main class="app">
         <header class="top">
             <div class="brand">
@@ -112,6 +153,7 @@
                     <button id="sign-out" type="button" hidden>Sign out</button>
                     <button id="export-data" type="button">Export backup</button>
                     <button id="import-data" type="button">Import backup</button>
+                    <button id="clear-today" class="clear-today" type="button">Clear today</button>
                     <input id="backup-file" type="file" accept="application/json" hidden>
                 </div>
                 <p class="sync-status" id="sync-status">Only saved on this device</p>
@@ -159,6 +201,17 @@
                 <section class="panel analytics-panel">
                     <h3>Trend Analytics</h3>
                     <p class="analytics-desc">Comparing Good, Avoid, Off track, and Woot woot entries over time.</p>
+                    <div class="balance" aria-label="Seven day action balance">
+                        <div class="balance-head">
+                            <div><div class="balance-label">Last 7 days</div><div class="balance-score" id="balance-score">No actions yet</div></div>
+                            <div class="balance-summary" id="balance-summary">Start your week</div>
+                        </div>
+                        <div class="balance-meter" id="balance-meter" aria-hidden="true"></div>
+                        <div class="balance-days" id="balance-days"></div>
+                        <div class="balance-legend" aria-label="Balance legend">
+                            <span><i class="good"></i> good</span><span><i class="avoid"></i> avoid</span><span><i class="woot"></i> standout</span><span><i class="bad"></i> off track</span>
+                        </div>
+                    </div>
                     <div class="graph-container">
                         <svg id="trend-line-graph" viewBox="0 0 260 110" style="width:100%;height:100%;overflow:visible;">
                             <polyline id="line-good" fill="none" stroke="#23845e" stroke-width="2.5" points="0,110 260,110"></polyline>
@@ -214,6 +267,7 @@
         const firebaseApp = initializeApp(firebaseConfig);
         const auth = getAuth(firebaseApp), db = getFirestore(firebaseApp), googleProvider = new GoogleAuthProvider();
         let currentUser = null;
+        let lastAction = null;
         const key = 'threefold_data';
         let data = JSON.parse(localStorage.getItem(key) || '{}');
         const today = new Date(), dateKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -263,8 +317,36 @@
             document.getElementById('date-label').textContent = dateKey(selected) === dateKey(today) ? `Today · ${dateText(selected)}` : dateText(selected);
             document.querySelectorAll('[data-count]').forEach(e => e.textContent = c[e.dataset.count]);
             document.getElementById('total').textContent = total;
+            renderWeeklyBalance();
             renderTrendGraph();
             renderStats();
+        }
+
+        function renderWeeklyBalance() {
+            const days = [];
+            for (let offset = 6; offset >= 0; offset--) {
+                const date = new Date(selected);
+                date.setDate(date.getDate() - offset);
+                days.push({ date, values: counts(date) });
+            }
+            const totals = days.reduce((all, day) => {
+                Object.keys(all).forEach(type => all[type] += day.values[type]);
+                return all;
+            }, { good: 0, avoid: 0, bad: 0, woot: 0 });
+            const total = Object.values(totals).reduce((sum, count) => sum + count, 0);
+            const positive = totals.good + totals.avoid + totals.woot;
+            const score = total ? Math.round((positive / total) * 100) : 0;
+            const meter = document.getElementById('balance-meter');
+            const types = ['good', 'avoid', 'woot', 'bad'];
+            meter.innerHTML = total ? types.map(type => `<span class="${type}" style="width:${(totals[type] / total) * 100}%"></span>`).join('') : '';
+            document.getElementById('balance-score').textContent = total ? `${score}% positive` : 'No actions yet';
+            document.getElementById('balance-summary').textContent = total ? `${positive} positive · ${totals.bad} off track` : 'Start your week';
+            document.getElementById('balance-days').innerHTML = days.map(({ date, values }) => {
+                const dayTotal = Object.values(values).reduce((sum, count) => sum + count, 0);
+                const bars = types.map(type => values[type] ? `<i class="${type}" style="height:${(values[type] / dayTotal) * 100}%"></i>` : '').join('');
+                const label = date.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2);
+                return `<div class="balance-day" aria-label="${dateText(date)}: ${dayTotal} actions"><div class="balance-day-bar">${bars}</div><div class="balance-day-label">${label}</div></div>`;
+            }).join('');
         }
 
         function totalsBetween(start, end) {
@@ -341,21 +423,63 @@
             grid.querySelectorAll('[data-date]').forEach(b => b.onclick = () => { selected = new Date(`${b.dataset.date}T00:00:00`); renderSelected(); renderCalendar(); });
         }
 
+        function triggerHaptic(type) {
+            if (typeof navigator.vibrate !== 'function') return;
+            const pattern = type === 'bad' ? [40, 30, 40] : type === 'woot' ? [20, 25, 55] : type === 'undo' ? 18 : 28;
+            navigator.vibrate(pattern);
+        }
+
         function logAction(type) {
             const k = dateKey(selected), c = counts(selected);
             c[type]++;
             data[k] = c;
+            lastAction = { date: k, type };
             localStorage.setItem(key, JSON.stringify(data));
             syncData();
+            triggerHaptic(type);
 
-            if (type === 'good' || type === 'avoid' || type === 'woot') {
-                document.getElementById('affirmation').textContent = randomAffirmation(type);
-            } else {
-                document.getElementById('affirmation').textContent = 'Reset and try again.';
-            }
+            const message = type === 'bad' ? 'Reset and try again.' : randomAffirmation(type);
+            const dailyTotal = Object.values(c).reduce((total, count) => total + count, 0);
+            const affirmation = document.getElementById('affirmation');
+            affirmation.classList.remove('message-pop');
+            void affirmation.offsetWidth;
+            affirmation.classList.add('message-pop');
+            affirmation.textContent = message;
+            showNotice(`${message} · ${dailyTotal} today.`, type, true);
 
             renderSelected();
             renderCalendar();
+        }
+
+        function undoAction() {
+            if (!lastAction) return;
+            const c = counts(new Date(`${lastAction.date}T00:00:00`));
+            c[lastAction.type] = Math.max(0, c[lastAction.type] - 1);
+            data[lastAction.date] = c;
+            localStorage.setItem(key, JSON.stringify(data));
+            lastAction = null;
+            syncData();
+            triggerHaptic('undo');
+            renderSelected();
+            renderCalendar();
+            showNotice('Last action undone.', '');
+        }
+
+        function clearToday() {
+            const todayKey = dateKey(today), current = counts(today);
+            const total = current.good + current.avoid + current.bad + current.woot;
+            if (!total) {
+                showNotice('Today is already clear.');
+                return;
+            }
+            if (!window.confirm('Clear all of today’s entries? This cannot be undone.')) return;
+            delete data[todayKey];
+            if (lastAction && lastAction.date === todayKey) lastAction = null;
+            localStorage.setItem(key, JSON.stringify(data));
+            syncData();
+            renderSelected();
+            renderCalendar();
+            showNotice('Today is clear.');
         }
 
         function setSyncStatus(message) {
@@ -453,9 +577,11 @@
             reader.readAsText(file);
         }
 
-        function showNotice(message) {
+        function showNotice(message, type = '', undoable = false) {
             const notice = document.getElementById('notice');
-            notice.textContent = message;
+            document.getElementById('notice-message').textContent = message;
+            document.getElementById('undo-action').hidden = !undoable;
+            notice.className = `notice ${type}`;
             notice.hidden = false;
             window.clearTimeout(notice.timer);
             notice.timer = window.setTimeout(() => { notice.hidden = true; }, 3500);
@@ -463,6 +589,8 @@
 
         document.getElementById('export-data').onclick = exportData;
         document.getElementById('import-data').onclick = () => document.getElementById('backup-file').click();
+        document.getElementById('clear-today').onclick = clearToday;
+        document.getElementById('undo-action').onclick = undoAction;
         document.getElementById('backup-file').onchange = event => {
             const [file] = event.target.files;
             if (file && window.confirm('Importing will replace this device’s current entries. Continue?')) importData(file);
