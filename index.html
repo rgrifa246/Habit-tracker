@@ -24,9 +24,9 @@
         h1{font-size:32px;letter-spacing:-.06em;line-height:1}
         .date-label{text-align:right;margin-top:9px}
         .layout{display:grid;grid-template-columns:minmax(290px,.9fr) minmax(450px,1.25fr);gap:22px}
-        .left-col{display:flex;flex-direction:column;gap:22px}
+        .left-col{display:flex;flex-direction:column;gap:18px;max-width:360px}
         .panel{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:0 14px 36px #3140380d}
-        .actions{padding:24px}
+        .actions{padding:20px}
         .actions h2{font-size:25px;letter-spacing:-.05em;margin:6px 0}
         .intro{max-width:380px;color:var(--muted);font:12px/1.5 Arial,sans-serif}
         .buttons{display:grid;gap:8px;margin-top:18px}
@@ -48,10 +48,11 @@
         .total-caption{color:var(--muted);font:10px Arial,sans-serif;margin-top:3px}
         
         /* Separate Line Graph Window */
-        .analytics-panel{padding:24px}
+        .analytics-panel{padding:18px}
         .analytics-panel h3{font-size:18px;letter-spacing:-.04em;margin-bottom:4px}
-        .analytics-desc{color:var(--muted);font:11px Arial,sans-serif;margin-bottom:16px}
-        .graph-container{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px;height:160px;position:relative}
+        .analytics-desc{color:var(--muted);font:11px Arial,sans-serif;margin-bottom:12px}
+        .graph-container{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:10px 12px 8px;height:180px;position:relative}
+        .graph-container svg{display:block;width:100%;height:100%;overflow:visible}
 
         .calendar{padding:24px}
         .calendar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
@@ -164,14 +165,29 @@
             document.getElementById('date-label').textContent = dateKey(selected) === dateKey(today) ? `Today · ${dateText(selected)}` : dateText(selected);
             document.querySelectorAll('[data-count]').forEach(e => e.textContent = c[e.dataset.count]);
             document.getElementById('total').textContent = total;
-            
-            // Generate comparison line graph points across active selected day counts
-            const maxVal = Math.max(c.good, c.avoid, c.bad, 5);
-            const w = 260, h = 110;
-            const pts = (val) => `0,${h - (val/maxVal)*h} ${w},${h - (val/maxVal)*h}`;
-            document.getElementById('line-good').setAttribute('points', pts(c.good));
-            document.getElementById('line-avoid').setAttribute('points', pts(c.avoid));
-            document.getElementById('line-bad').setAttribute('points', pts(c.bad));
+            renderTrendGraph();
+        }
+
+        function renderTrendGraph() {
+            const days = [];
+            for (let offset = 6; offset >= 0; offset--) {
+                const d = new Date(selected);
+                d.setDate(d.getDate() - offset);
+                days.push({ label: d, values: counts(d) });
+            }
+
+            const maxVal = Math.max(...days.flatMap(day => [day.values.good, day.values.avoid, day.values.bad]), 5);
+            const w = 260, h = 110, pad = 8;
+            const xAt = (index) => {
+                if (days.length === 1) return pad;
+                return pad + (index / (days.length - 1)) * (w - pad * 2);
+            };
+            const yAt = (value) => h - pad - (value / maxVal) * (h - pad * 2);
+
+            const pointsFor = (type) => days.map((day, index) => `${xAt(index)},${yAt(day.values[type])}`).join(' ');
+            document.getElementById('line-good').setAttribute('points', pointsFor('good'));
+            document.getElementById('line-avoid').setAttribute('points', pointsFor('avoid'));
+            document.getElementById('line-bad').setAttribute('points', pointsFor('bad'));
         }
 
         function renderCalendar() {
