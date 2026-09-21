@@ -24,27 +24,35 @@
         h1{font-size:32px;letter-spacing:-.06em;line-height:1}
         .date-label{text-align:right;margin-top:9px}
         .layout{display:grid;grid-template-columns:minmax(290px,.9fr) minmax(450px,1.25fr);gap:22px}
+        .left-col{display:flex;flex-direction:column;gap:22px}
         .panel{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:0 14px 36px #3140380d}
-        .actions{padding:30px}
-        .actions h2{font-size:29px;letter-spacing:-.05em;margin:8px 0}
-        .intro{max-width:380px;color:var(--muted);font:13px/1.6 Arial,sans-serif}
-        .buttons{display:grid;gap:10px;margin-top:25px}
-        .action{display:grid;grid-template-columns:45px 1fr auto;align-items:center;gap:13px;min-height:76px;padding:12px;border:1px solid transparent;border-radius:15px;text-align:left;cursor:pointer;transition:.15s}
+        .actions{padding:24px}
+        .actions h2{font-size:25px;letter-spacing:-.05em;margin:6px 0}
+        .intro{max-width:380px;color:var(--muted);font:12px/1.5 Arial,sans-serif}
+        .buttons{display:grid;gap:8px;margin-top:18px}
+        .action{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:10px;min-height:64px;padding:10px;border:1px solid transparent;border-radius:12px;text-align:left;cursor:pointer;transition:.15s}
         .action:hover{transform:translateY(-2px);box-shadow:0 8px 15px #30403818}
         .action:active{transform:scale(.985)}
         .good{background:var(--good-bg);border-color:#c6e5d4}
         .avoid{background:var(--avoid-bg);border-color:#d9cceb}
         .bad{background:var(--bad-bg);border-color:#efd0cb}
-        .icon{display:grid;place-items:center;width:45px;height:45px;border-radius:12px;color:#fff;font:bold 23px Arial}
+        .icon{display:grid;place-items:center;width:40px;height:40px;border-radius:10px;color:#fff;font:bold 20px Arial}
         .good .icon{background:var(--good)}
         .avoid .icon{background:var(--avoid)}
         .bad .icon{background:var(--bad)}
-        .title{display:block;font:bold 14px Arial,sans-serif}
-        .hint{display:block;color:#304038aa;font:11px Arial,sans-serif;margin-top:3px}
+        .title{display:block;font:bold 13px Arial,sans-serif}
+        .hint{display:block;color:#304038aa;font:10px Arial,sans-serif;margin-top:2px}
         .count{color:#304038aa}
-        .summary{display:flex;justify-content:space-between;align-items:end;border-top:1px solid var(--line);margin-top:28px;padding-top:20px}
-        .total{font:bold 37px Arial,sans-serif;letter-spacing:-.08em}
-        .total-caption{color:var(--muted);font:11px Arial,sans-serif;margin-top:4px}
+        .summary{display:flex;justify-content:space-between;align-items:end;border-top:1px solid var(--line);margin-top:20px;padding-top:16px}
+        .total{font:bold 32px Arial,sans-serif;letter-spacing:-.08em}
+        .total-caption{color:var(--muted);font:10px Arial,sans-serif;margin-top:3px}
+        
+        /* Separate Line Graph Window */
+        .analytics-panel{padding:24px}
+        .analytics-panel h3{font-size:18px;letter-spacing:-.04em;margin-bottom:4px}
+        .analytics-desc{color:var(--muted);font:11px Arial,sans-serif;margin-bottom:16px}
+        .graph-container{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px;height:160px;position:relative}
+
         .calendar{padding:24px}
         .calendar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
         .calendar-head h2{font-size:22px;letter-spacing:-.05em}
@@ -77,47 +85,53 @@
                 <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
                 <div><p class="eyebrow">daily action log</p><h1>Threefold</h1></div>
             </div>
-            <div style="display:flex; align-items:center; gap:12px;">
-                <button id="open-analytics" style="padding:8px 14px; background:var(--ink); color:var(--card); border:none; border-radius:10px; font:12px monospace; cursor:pointer;">Analytics</button>
-                <p class="date-label" id="date-label" style="margin:0;"></p>
-            </div>
+            <p class="date-label" id="date-label"></p>
         </header>
         <div class="layout">
-            <section class="panel actions" aria-labelledby="question">
-                <p class="section-label">Make a note</p>
-                <h2 id="question">How did today go?</h2>
-                <p class="intro">Tap once to record a moment. Your entries stay on this device and can be reviewed by day or month.</p>
-                <div class="buttons">
-                    <button class="action good" data-type="good">
-                        <span class="icon">+</span>
-                        <span><span class="title">Good action</span><span class="hint">Something you are glad you did</span></span>
-                        <span class="count" data-count="good">0</span>
-                    </button>
-                    <button class="action avoid" data-type="avoid">
-                        <span class="icon">−</span>
-                        <span><span class="title">Chose not to</span><span class="hint">Avoided a bad action</span></span>
-                        <span class="count" data-count="avoid">0</span>
-                    </button>
-                    <button class="action bad" data-type="bad">
-                        <span class="icon">!</span>
-                        <span><span class="title">Bad action</span><span class="hint">Something you would change</span></span>
-                        <span class="count" data-count="bad">0</span>
-                    </button>
-                </div>
-                <div class="summary">
-                    <div>
-                        <div class="total" id="total">0</div>
-                        <div class="total-caption">actions logged</div>
+            <div class="left-col">
+                <section class="panel actions" aria-labelledby="question">
+                    <p class="section-label">Make a note</p>
+                    <h2 id="question">How did today go?</h2>
+                    <p class="intro">Tap once to record a moment. Entries stay on this device.</p>
+                    <div class="buttons">
+                        <button class="action good" data-type="good">
+                            <span class="icon">+</span>
+                            <span><span class="title">Good action</span><span class="hint">Glad you did</span></span>
+                            <span class="count" data-count="good">0</span>
+                        </button>
+                        <button class="action avoid" data-type="avoid">
+                            <span class="icon">−</span>
+                            <span><span class="title">Chose not to</span><span class="hint">Avoided bad action</span></span>
+                            <span class="count" data-count="avoid">0</span>
+                        </button>
+                        <button class="action bad" data-type="bad">
+                            <span class="icon">!</span>
+                            <span><span class="title">Bad action</span><span class="hint">Would change</span></span>
+                            <span class="count" data-count="bad">0</span>
+                        </button>
                     </div>
-                    <div style="position:relative;width:140px;height:45px;">
-                        <svg id="trend-line-graph" viewBox="0 0 140 45" style="width:100%;height:100%;overflow:visible;">
-                            <polyline id="line-good" fill="none" stroke="#23845e" stroke-width="2.5" points="0,45 140,45"></polyline>
-                            <polyline id="line-avoid" fill="none" stroke="#7954aa" stroke-width="2.5" points="0,45 140,45"></polyline>
-                            <polyline id="line-bad" fill="none" stroke="#bd4b43" stroke-width="2.5" points="0,45 140,45"></polyline>
+                    <div class="summary">
+                        <div>
+                            <div class="total" id="total">0</div>
+                            <div class="total-caption">actions logged</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Separate Line Graph Window Below -->
+                <section class="panel analytics-panel">
+                    <h3>Trend Analytics</h3>
+                    <p class="analytics-desc">Comparing Good, Avoid, and Bad entries over time.</p>
+                    <div class="graph-container">
+                        <svg id="trend-line-graph" viewBox="0 0 260 110" style="width:100%;height:100%;overflow:visible;">
+                            <polyline id="line-good" fill="none" stroke="#23845e" stroke-width="2.5" points="0,110 260,110"></polyline>
+                            <polyline id="line-avoid" fill="none" stroke="#7954aa" stroke-width="2.5" points="0,110 260,110"></polyline>
+                            <polyline id="line-bad" fill="none" stroke="#bd4b43" stroke-width="2.5" points="0,110 260,110"></polyline>
                         </svg>
                     </div>
-                </div>
-            </section>
+                </section>
+            </div>
+
             <section class="panel calendar" aria-labelledby="month">
                 <div class="calendar-head">
                     <h2 id="month"></h2>
@@ -137,24 +151,6 @@
         </div>
     </main>
 
-    <!-- Separate Analytics Modal Window -->
-    <div id="analytics-modal" style="display:none; position:fixed; inset:0; background:rgba(30,42,37,0.8); z-index:100; place-items:center; padding:20px;">
-        <div style="background:var(--card); border:1px solid var(--line); border-radius:24px; width:100%; max-width:500px; padding:28px; box-shadow:0 20px 40px rgba(0,0,0,0.3);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h2 style="font-size:24px; margin:0;">Trend Analytics</h2>
-                <button id="close-analytics" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
-            </div>
-            <p style="color:var(--muted); font-size:13px; margin-bottom:20px;">Detailed multi-category historical trend lines for your tracked actions.</p>
-            <div style="background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:20px; height:220px; position:relative;">
-                <svg id="modal-line-graph" viewBox="0 0 300 150" style="width:100%; height:100%; overflow:visible;">
-                    <polyline id="modal-line-good" fill="none" stroke="#23845e" stroke-width="3" points="0,150 300,150"></polyline>
-                    <polyline id="modal-line-avoid" fill="none" stroke="#7954aa" stroke-width="3" points="0,150 300,150"></polyline>
-                    <polyline id="modal-line-bad" fill="none" stroke="#bd4b43" stroke-width="3" points="0,150 300,150"></polyline>
-                </svg>
-            </div>
-        </div>
-    </div>
-
     <script>
         const key = 'threefold_data';
         let data = JSON.parse(localStorage.getItem(key) || '{}');
@@ -169,8 +165,9 @@
             document.querySelectorAll('[data-count]').forEach(e => e.textContent = c[e.dataset.count]);
             document.getElementById('total').textContent = total;
             
+            // Generate comparison line graph points across active selected day counts
             const maxVal = Math.max(c.good, c.avoid, c.bad, 5);
-            const w = 140, h = 45;
+            const w = 260, h = 110;
             const pts = (val) => `0,${h - (val/maxVal)*h} ${w},${h - (val/maxVal)*h}`;
             document.getElementById('line-good').setAttribute('points', pts(c.good));
             document.getElementById('line-avoid').setAttribute('points', pts(c.avoid));
@@ -201,24 +198,8 @@
 
         document.getElementById('previous').onclick = () => { shown.setMonth(shown.getMonth() - 1); renderCalendar(); };
         document.getElementById('next').onclick = () => { shown.setMonth(shown.getMonth() + 1); renderCalendar(); };
-
-        // Analytics Modal handling
-        const modal = document.getElementById('analytics-modal');
-        document.getElementById('open-analytics').onclick = () => {
-            modal.style.display = 'grid';
-            const c = counts(selected);
-            const maxVal = Math.max(c.good, c.avoid, c.bad, 5);
-            const w = 300, h = 150;
-            const pts = (val) => `0,${h - (val/maxVal)*h} ${w},${h - (val/maxVal)*h}`;
-            document.getElementById('modal-line-good').setAttribute('points', pts(c.good));
-            document.getElementById('modal-line-avoid').setAttribute('points', pts(c.avoid));
-            document.getElementById('modal-line-bad').setAttribute('points', pts(c.bad));
-        };
-        document.getElementById('close-analytics').onclick = () => { modal.style.display = 'none'; };
-        modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
-
         renderSelected();
         renderCalendar();
     </script>
 </body>
-</html>
+</html> 
