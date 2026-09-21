@@ -29,23 +29,24 @@
         .actions{padding:20px}
         .actions h2{font-size:25px;letter-spacing:-.05em;margin:6px 0}
         .intro{max-width:380px;color:var(--muted);font:12px/1.5 Arial,sans-serif}
-        .buttons{display:grid;gap:8px;margin-top:18px}
-        .action{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:10px;min-height:64px;padding:10px;border:1px solid transparent;border-radius:12px;text-align:left;cursor:pointer;transition:.15s}
+        .buttons{display:grid;gap:10px;margin-top:18px}
+        .action{display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:10px;min-height:68px;padding:12px 12px 12px 10px;border:1px solid transparent;border-radius:14px;text-align:left;cursor:pointer;transition:.15s}
         .action:hover{transform:translateY(-2px);box-shadow:0 8px 15px #30403818}
         .action:active{transform:scale(.985)}
-        .good{background:var(--good-bg);border-color:#c6e5d4}
-        .avoid{background:var(--avoid-bg);border-color:#d9cceb}
-        .bad{background:var(--bad-bg);border-color:#efd0cb}
-        .icon{display:grid;place-items:center;width:40px;height:40px;border-radius:10px;color:#fff;font:bold 20px Arial}
+        .good{background:linear-gradient(180deg,#edf9f2,#e2f5e9);border-color:#cfead9}
+        .avoid{background:linear-gradient(180deg,#f3effc,#ebe2fa);border-color:#ddcff7}
+        .bad{background:linear-gradient(180deg,#fdf0ee,#f9e5e2);border-color:#efcfc7}
+        .icon{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;color:#fff;font:bold 20px Arial;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
         .good .icon{background:var(--good)}
         .avoid .icon{background:var(--avoid)}
         .bad .icon{background:var(--bad)}
-        .title{display:block;font:bold 13px Arial,sans-serif}
-        .hint{display:block;color:#304038aa;font:10px Arial,sans-serif;margin-top:2px}
-        .count{color:#304038aa}
+        .title{display:block;font:bold 14px Arial,sans-serif;letter-spacing:-.02em}
+        .hint{display:block;color:#304038aa;font:11px Arial,sans-serif;margin-top:2px}
+        .count{color:#304038aa;font:700 15px Arial,sans-serif;min-width:18px;text-align:right}
         .summary{display:flex;justify-content:space-between;align-items:end;border-top:1px solid var(--line);margin-top:20px;padding-top:16px}
         .total{font:bold 32px Arial,sans-serif;letter-spacing:-.08em}
         .total-caption{color:var(--muted);font:10px Arial,sans-serif;margin-top:3px}
+        .affirmation{margin-top:12px;padding:8px 10px;border-radius:10px;background:var(--good-bg);color:#1d4334;font:11px Arial,sans-serif;border:1px solid #cae4d3;min-height:34px;display:flex;align-items:center}
         
         /* Separate Line Graph Window */
         .analytics-panel{padding:18px}
@@ -97,17 +98,17 @@
                     <div class="buttons">
                         <button class="action good" data-type="good">
                             <span class="icon">+</span>
-                            <span><span class="title">Good action</span><span class="hint">Glad you did</span></span>
+                            <span><span class="title">Good choice</span><span class="hint">A win for today</span></span>
                             <span class="count" data-count="good">0</span>
                         </button>
                         <button class="action avoid" data-type="avoid">
                             <span class="icon">−</span>
-                            <span><span class="title">Chose not to</span><span class="hint">Avoided bad action</span></span>
+                            <span><span class="title">Avoid</span><span class="hint">I did not do the bad thing</span></span>
                             <span class="count" data-count="avoid">0</span>
                         </button>
                         <button class="action bad" data-type="bad">
                             <span class="icon">!</span>
-                            <span><span class="title">Bad action</span><span class="hint">Would change</span></span>
+                            <span><span class="title">Off track</span><span class="hint">A reset moment</span></span>
                             <span class="count" data-count="bad">0</span>
                         </button>
                     </div>
@@ -117,6 +118,7 @@
                             <div class="total-caption">actions logged</div>
                         </div>
                     </div>
+                    <div id="affirmation" class="affirmation" aria-live="polite">You’re building momentum.</div>
                 </section>
 
                 <!-- Separate Line Graph Window Below -->
@@ -159,6 +161,29 @@
         let selected = new Date(today), shown = new Date(today);
         const counts = d => data[dateKey(d)] || { good: 0, avoid: 0, bad: 0 };
         const dateText = d => d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+        const affirmations = {
+            good: [
+                'Nice work, you chaos gremlin.',
+                'That’s a proper win. The bad stuff is sweating now.',
+                'You did the thing. Respectfully excellent.',
+                'Momentum: unlocked. The plot thickens in your favour.',
+                'Solid choice. The future you is smug as hell.',
+                'Very good. No notes, just chaos with discipline.'
+            ],
+            avoid: [
+                'Nice restraint, you menace.',
+                'You dodged that bullet like a pro and a goblin.',
+                'That was a smart move. The bad thing lost the argument.',
+                'Not today, disaster. You won this round, you sly dog.',
+                'Low drama, high self-control. A genuinely classy move.',
+                'The temptation showed up and got ghosted. Excellent.'
+            ]
+        };
+
+        function randomAffirmation(type) {
+            const list = affirmations[type] || affirmations.good;
+            return list[Math.floor(Math.random() * list.length)];
+        }
 
         function renderSelected() {
             const c = counts(selected), total = c.good + c.avoid + c.bad;
@@ -204,10 +229,18 @@
         }
 
         document.querySelectorAll('.action').forEach(b => b.onclick = () => {
+            const type = b.dataset.type;
             const k = dateKey(selected), c = counts(selected);
-            c[b.dataset.type]++;
+            c[type]++;
             data[k] = c;
             localStorage.setItem(key, JSON.stringify(data));
+
+            if (type === 'good' || type === 'avoid') {
+                document.getElementById('affirmation').textContent = randomAffirmation(type);
+            } else {
+                document.getElementById('affirmation').textContent = 'Reset and try again.';
+            }
+
             renderSelected();
             renderCalendar();
         });
