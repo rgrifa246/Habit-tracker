@@ -80,17 +80,15 @@
     const totalEl = document.getElementById('total-count');
     if (totalEl) totalEl.innerText = total;
 
-    // Pull past history array or mock points for the trend lines
-    let history = JSON.parse(localStorage.getItem('action_history') || '[]');
-    if (history.length === 0) {
-      // Provide a couple of initial points so the line is visible immediately
-      history = [
-        { g: 0, a: 0, b: 0 },
-        { g: Number(localStorage.getItem('good_count') || 0), 
-          a: Number(localStorage.getItem('avoid_count') || 0), 
-          b: Number(localStorage.getItem('bad_count') || 0) }
-      ];
-    }
+    const good = Number(localStorage.getItem('good_count') || 1);
+    const avoid = Number(localStorage.getItem('avoid_count') || 0);
+    const bad = Number(localStorage.getItem('bad_count') || 0);
+
+    // Build a multi-point trend array so lines display immediately
+    const history = [
+      { g: Math.max(0, good - 1), a: avoid, b: bad },
+      { g: good, a: avoid, b: bad }
+    ];
 
     const maxVal = Math.max(...history.map(h => Math.max(h.g, h.a, h.b)), 5);
     const width = 140;
@@ -98,9 +96,9 @@
 
     const getPointsStr = (key) => {
       return history.map((pt, i) => {
-        const x = (i / (Math.max(history.length - 1, 1))) * width;
+        const x = (i / (history.length - 1)) * width;
         const y = height - (pt[key] / maxVal) * height;
-        return `${x},${Math.max(2, Math.min(height, y))}`;
+        return `${x},${Math.max(4, Math.min(height - 2, y))}`;
       }).join(' ');
     };
 
@@ -114,5 +112,5 @@
   }
 
   window.addEventListener('DOMContentLoaded', updateGraph);
-</script>
+</script>  
 </html>
