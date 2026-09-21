@@ -12,6 +12,10 @@
         button{font:inherit;color:inherit}
         .app{max-width:1080px;margin:auto;padding:28px 18px 48px}
         .top{display:flex;justify-content:space-between;align-items:start;margin-bottom:28px}
+        .backup-controls{display:flex;gap:6px;flex-wrap:wrap;justify-content:end;margin-top:10px}
+        .backup-controls button{border:1px solid var(--line);border-radius:9px;background:var(--card);padding:7px 9px;cursor:pointer;font:11px Arial,sans-serif}
+        .backup-controls button:hover{background:var(--ink);color:#fff}
+        .sync-status{color:var(--muted);font:10px Arial,sans-serif;text-align:right;margin-top:6px;max-width:240px}
         .brand{display:flex;align-items:center;gap:12px}
         .mark{display:flex;gap:3px;width:42px;height:42px;padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
         .mark i{flex:1;border-radius:3px}
@@ -87,7 +91,17 @@
                 <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
                 <div><p class="eyebrow">daily action log</p><h1>Threefold</h1></div>
             </div>
-            <p class="date-label" id="date-label"></p>
+            <div>
+                <p class="date-label" id="date-label"></p>
+                <div class="backup-controls">
+                    <button id="sign-in" type="button">Sign in to sync</button>
+                    <button id="sign-out" type="button" hidden>Sign out</button>
+                    <button id="export-data" type="button">Export backup</button>
+                    <button id="import-data" type="button">Import backup</button>
+                    <input id="backup-file" type="file" accept="application/json" hidden>
+                </div>
+                <p class="sync-status" id="sync-status">Only saved on this device</p>
+            </div>
         </header>
         <div class="layout">
             <div class="left-col">
@@ -154,7 +168,24 @@
         </div>
     </main>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
+        import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
+        import { doc, getDoc, getFirestore, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: 'AIzaSyAMeKXm-dnrPCQpx_RyUkGXJLxtjw06giM',
+            authDomain: 'threefold-habit-tracker.firebaseapp.com',
+            projectId: 'threefold-habit-tracker',
+            storageBucket: 'threefold-habit-tracker.firebasestorage.app',
+            messagingSenderId: '694098058341',
+            appId: '1:694098058341:web:7854965786c9edbc597a8c',
+            measurementId: 'G-23XJ8CRDNX'
+        };
+
+        const firebaseApp = initializeApp(firebaseConfig);
+        const auth = getAuth(firebaseApp), db = getFirestore(firebaseApp), googleProvider = new GoogleAuthProvider();
+        let currentUser = null;
         const key = 'threefold_data';
         let data = JSON.parse(localStorage.getItem(key) || '{}');
         const today = new Date(), dateKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -233,6 +264,7 @@
             c[type]++;
             data[k] = c;
             localStorage.setItem(key, JSON.stringify(data));
+            syncData();
 
             if (type === 'good' || type === 'avoid') {
                 document.getElementById('affirmation').textContent = randomAffirmation(type);
@@ -243,6 +275,94 @@
             renderSelected();
             renderCalendar();
         }
+
+        function setSyncStatus(message) {
+            document.getElementById('sync-status').textContent = message;
+        }
+
+        async function syncData() {
+            if (!currentUser) return;
+            try {
+                await setDoc(doc(db, 'users', currentUser.uid), { data, updatedAt: serverTimestamp() }, { merge: true });
+                setSyncStatus(`Synced as ${currentUser.displayName || currentUser.email}`);
+            } catch (error) {
+                console.error('Could not sync data:', error);
+                setSyncStatus('Saved here, but cloud sync failed');
+            }
+        }
+
+        async function loadCloudData(user) {
+            try {
+                const snapshot = await getDoc(doc(db, 'users', user.uid));
+                if (snapshot.exists() && snapshot.data().data) {
+                    data = snapshot.data().data;
+                    localStorage.setItem(key, JSON.stringify(data));
+                } else {
+                    await syncData();
+                }
+                renderSelected();
+                renderCalendar();
+                setSyncStatus(`Synced as ${user.displayName || user.email}`);
+            } catch (error) {
+                console.error('Could not load cloud data:', error);
+                setSyncStatus('Signed in, but cloud sync failed');
+            }
+        }
+
+        document.getElementById('sign-in').onclick = async () => {
+            try {
+                await signInWithPopup(auth, googleProvider);
+            } catch (error) {
+                console.error('Sign-in failed:', error);
+                setSyncStatus('Sign-in was cancelled or failed');
+            }
+        };
+        document.getElementById('sign-out').onclick = () => signOut(auth);
+        onAuthStateChanged(auth, user => {
+            currentUser = user;
+            document.getElementById('sign-in').hidden = Boolean(user);
+            document.getElementById('sign-out').hidden = !user;
+            if (user) loadCloudData(user);
+            else setSyncStatus('Only saved on this device');
+        });
+
+        function exportData() {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob), link = document.createElement('a');
+            link.href = url;
+            link.download = `threefold-backup-${dateKey(today)}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData(file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const imported = JSON.parse(reader.result);
+                    if (!imported || typeof imported !== 'object' || Array.isArray(imported)) throw new Error('Invalid backup');
+                    data = Object.fromEntries(Object.entries(imported).map(([date, values]) => {
+                        const counts = values && typeof values === 'object' ? values : {};
+                        return [date, { good: Number(counts.good) || 0, avoid: Number(counts.avoid) || 0, bad: Number(counts.bad) || 0 }];
+                    }));
+                    localStorage.setItem(key, JSON.stringify(data));
+                    renderSelected();
+                    renderCalendar();
+                    alert('Backup imported.');
+                } catch {
+                    alert('That file is not a valid Threefold backup.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        document.getElementById('export-data').onclick = exportData;
+        document.getElementById('import-data').onclick = () => document.getElementById('backup-file').click();
+        document.getElementById('backup-file').onchange = event => {
+            const [file] = event.target.files;
+            if (file) importData(file);
+            event.target.value = '';
+        };
 
         document.querySelectorAll('.action').forEach(b => b.onclick = () => {
             const type = b.dataset.type;
