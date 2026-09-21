@@ -42,6 +42,19 @@
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
 <div class="summary">
+	<div class="summary">
+          <div>
+            <div class="total" id="total-count">0</div>
+            <div class="total-caption">actions logged</div>
+          </div>
+          <div style="position: relative; width: 140px; height: 45px;">
+            <svg id="trend-line-graph" viewBox="0 0 140 45" style="width: 100%; height: 100%; overflow: visible;">
+              <polyline id="line-good" fill="none" stroke="#22c55e" stroke-width="2.5" points=""></polyline>
+              <polyline id="line-avoid" fill="none" stroke="#a855f7" stroke-width="2.5" points=""></polyline>
+              <polyline id="line-bad" fill="none" stroke="#ef4444" stroke-width="2.5" points=""></polyline>
+            </svg>
+          </div>
+        </div>
           <div>
             <div class="total" id="total-count">0</div>
             <div class="total-caption">actions logged</div>
