@@ -1,0 +1,22 @@
+{
+  "name": "Threefold",
+  "short_name": "Threefold",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f5f1e9",
+  "theme_color": "#1e2a25",
+  "shortcuts": [
+    {
+      "name": "Good Action",
+      "url": "./?log=good"
+    },
+    {
+      "name": "Chose Not To",
+      "url": "./?log=avoid"
+    },
+    {
+      "name": "Bad Action",
+      "url": "./?log=bad"
+    }
+  ]
+}
