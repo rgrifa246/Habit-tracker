@@ -77,7 +77,10 @@
                 <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
                 <div><p class="eyebrow">daily action log</p><h1>Threefold</h1></div>
             </div>
-            <p class="date-label" id="date-label"></p>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <button id="open-analytics" style="padding:8px 14px; background:var(--ink); color:var(--card); border:none; border-radius:10px; font:12px monospace; cursor:pointer;">Analytics</button>
+                <p class="date-label" id="date-label" style="margin:0;"></p>
+            </div>
         </header>
         <div class="layout">
             <section class="panel actions" aria-labelledby="question">
@@ -133,6 +136,25 @@
             </section>
         </div>
     </main>
+
+    <!-- Separate Analytics Modal Window -->
+    <div id="analytics-modal" style="display:none; position:fixed; inset:0; background:rgba(30,42,37,0.8); z-index:100; place-items:center; padding:20px;">
+        <div style="background:var(--card); border:1px solid var(--line); border-radius:24px; width:100%; max-width:500px; padding:28px; box-shadow:0 20px 40px rgba(0,0,0,0.3);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="font-size:24px; margin:0;">Trend Analytics</h2>
+                <button id="close-analytics" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+            </div>
+            <p style="color:var(--muted); font-size:13px; margin-bottom:20px;">Detailed multi-category historical trend lines for your tracked actions.</p>
+            <div style="background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:20px; height:220px; position:relative;">
+                <svg id="modal-line-graph" viewBox="0 0 300 150" style="width:100%; height:100%; overflow:visible;">
+                    <polyline id="modal-line-good" fill="none" stroke="#23845e" stroke-width="3" points="0,150 300,150"></polyline>
+                    <polyline id="modal-line-avoid" fill="none" stroke="#7954aa" stroke-width="3" points="0,150 300,150"></polyline>
+                    <polyline id="modal-line-bad" fill="none" stroke="#bd4b43" stroke-width="3" points="0,150 300,150"></polyline>
+                </svg>
+            </div>
+        </div>
+    </div>
+
     <script>
         const key = 'threefold_data';
         let data = JSON.parse(localStorage.getItem(key) || '{}');
@@ -179,6 +201,22 @@
 
         document.getElementById('previous').onclick = () => { shown.setMonth(shown.getMonth() - 1); renderCalendar(); };
         document.getElementById('next').onclick = () => { shown.setMonth(shown.getMonth() + 1); renderCalendar(); };
+
+        // Analytics Modal handling
+        const modal = document.getElementById('analytics-modal');
+        document.getElementById('open-analytics').onclick = () => {
+            modal.style.display = 'grid';
+            const c = counts(selected);
+            const maxVal = Math.max(c.good, c.avoid, c.bad, 5);
+            const w = 300, h = 150;
+            const pts = (val) => `0,${h - (val/maxVal)*h} ${w},${h - (val/maxVal)*h}`;
+            document.getElementById('modal-line-good').setAttribute('points', pts(c.good));
+            document.getElementById('modal-line-avoid').setAttribute('points', pts(c.avoid));
+            document.getElementById('modal-line-bad').setAttribute('points', pts(c.bad));
+        };
+        document.getElementById('close-analytics').onclick = () => { modal.style.display = 'none'; };
+        modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+
         renderSelected();
         renderCalendar();
     </script>
