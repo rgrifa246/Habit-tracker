@@ -96,17 +96,17 @@
                     <h2 id="question">How did today go?</h2>
                     <p class="intro">Tap once to record a moment. Entries stay on this device.</p>
                     <div class="buttons">
-                        <button class="action good" data-type="good">
+                        <button id="good" class="action good" data-type="good">
                             <span class="icon">+</span>
                             <span><span class="title">Good choice</span><span class="hint">A win for today</span></span>
                             <span class="count" data-count="good">0</span>
                         </button>
-                        <button class="action avoid" data-type="avoid">
+                        <button id="avoid" class="action avoid" data-type="avoid">
                             <span class="icon">−</span>
                             <span><span class="title">Avoid</span><span class="hint">I did not do the bad thing</span></span>
                             <span class="count" data-count="avoid">0</span>
                         </button>
-                        <button class="action bad" data-type="bad">
+                        <button id="bad" class="action bad" data-type="bad">
                             <span class="icon">!</span>
                             <span><span class="title">Off track</span><span class="hint">A reset moment</span></span>
                             <span class="count" data-count="bad">0</span>
@@ -228,8 +228,7 @@
             grid.querySelectorAll('[data-date]').forEach(b => b.onclick = () => { selected = new Date(`${b.dataset.date}T00:00:00`); renderSelected(); renderCalendar(); });
         }
 
-        document.querySelectorAll('.action').forEach(b => b.onclick = () => {
-            const type = b.dataset.type;
+        function logAction(type) {
             const k = dateKey(selected), c = counts(selected);
             c[type]++;
             data[k] = c;
@@ -243,12 +242,34 @@
 
             renderSelected();
             renderCalendar();
+        }
+
+        document.querySelectorAll('.action').forEach(b => b.onclick = () => {
+            const type = b.dataset.type;
+            logAction(type);
         });
+
+        function handleShortcutTarget() {
+            const params = new URLSearchParams(window.location.search);
+            const queryType = params.get('log');
+            const hashType = (window.location.hash || '').replace('#', '').toLowerCase();
+            const valid = ['good', 'avoid', 'bad'];
+            const type = valid.includes(queryType) ? queryType : valid.includes(hashType) ? hashType : null;
+
+            if (!type) return;
+
+            selected = new Date(today);
+            shown = new Date(today);
+            logAction(type);
+            window.history.replaceState(null, '', window.location.pathname);
+        }
 
         document.getElementById('previous').onclick = () => { shown.setMonth(shown.getMonth() - 1); renderCalendar(); };
         document.getElementById('next').onclick = () => { shown.setMonth(shown.getMonth() + 1); renderCalendar(); };
+        window.addEventListener('hashchange', handleShortcutTarget);
         renderSelected();
         renderCalendar();
+        handleShortcutTarget();
     </script>
 </body>
 </html> 
