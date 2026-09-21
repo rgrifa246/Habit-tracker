@@ -74,4 +74,45 @@
   });
 </script>
 </body>
+<script>
+  function updateGraph() {
+    const total = localStorage.getItem('total_actions') || 0;
+    const totalEl = document.getElementById('total-count');
+    if (totalEl) totalEl.innerText = total;
+
+    // Pull past history array or mock points for the trend lines
+    let history = JSON.parse(localStorage.getItem('action_history') || '[]');
+    if (history.length === 0) {
+      // Provide a couple of initial points so the line is visible immediately
+      history = [
+        { g: 0, a: 0, b: 0 },
+        { g: Number(localStorage.getItem('good_count') || 0), 
+          a: Number(localStorage.getItem('avoid_count') || 0), 
+          b: Number(localStorage.getItem('bad_count') || 0) }
+      ];
+    }
+
+    const maxVal = Math.max(...history.map(h => Math.max(h.g, h.a, h.b)), 5);
+    const width = 140;
+    const height = 40;
+
+    const getPointsStr = (key) => {
+      return history.map((pt, i) => {
+        const x = (i / (Math.max(history.length - 1, 1))) * width;
+        const y = height - (pt[key] / maxVal) * height;
+        return `${x},${Math.max(2, Math.min(height, y))}`;
+      }).join(' ');
+    };
+
+    const gLine = document.getElementById('line-good');
+    const aLine = document.getElementById('line-avoid');
+    const bLine = document.getElementById('line-bad');
+
+    if (gLine) gLine.setAttribute('points', getPointsStr('g'));
+    if (aLine) aLine.setAttribute('points', getPointsStr('a'));
+    if (bLine) bLine.setAttribute('points', getPointsStr('b'));
+  }
+
+  window.addEventListener('DOMContentLoaded', updateGraph);
+</script>
 </html>
