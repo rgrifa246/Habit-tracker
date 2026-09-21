@@ -59,7 +59,6 @@
         .affirmation{margin-top:12px;padding:8px 10px;border-radius:10px;background:var(--good-bg);color:#1d4334;font:11px Arial,sans-serif;border:1px solid #cae4d3;min-height:34px;display:flex;align-items:center}
         .affirmation.message-pop{animation:message-pop .45s ease-out}
         
-        /* Separate Line Graph Window */
         .analytics-panel{padding:18px}
         .analytics-panel h3{font-size:18px;letter-spacing:-.04em;margin-bottom:4px}
         .analytics-desc{color:var(--muted);font:11px Arial,sans-serif;margin-bottom:12px}
@@ -90,8 +89,6 @@
         .balance-legend .avoid{background:var(--avoid)}
         .balance-legend .woot{background:var(--woot)}
         .balance-legend .bad{background:var(--bad)}
-        .graph-container{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:10px 12px 8px;height:180px;position:relative}
-        .graph-container svg{display:block;width:100%;height:100%;overflow:visible}
         .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
         .stat{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
         .stat-label{color:var(--muted);font:10px Arial,sans-serif}
@@ -197,10 +194,9 @@
                     <div id="affirmation" class="affirmation" aria-live="polite">You’re building momentum.</div>
                 </section>
 
-                <!-- Separate Line Graph Window Below -->
                 <section class="panel analytics-panel">
-                    <h3>Trend Analytics</h3>
-                    <p class="analytics-desc">Comparing Good, Avoid, Off track, and Woot woot entries over time.</p>
+                    <h3>Your momentum</h3>
+                    <p class="analytics-desc">See your positive actions build while off-track moments shrink.</p>
                     <div class="balance" aria-label="Seven day action balance">
                         <div class="balance-head">
                             <div><div class="balance-label">Last 7 days</div><div class="balance-score" id="balance-score">No actions yet</div></div>
@@ -211,14 +207,6 @@
                         <div class="balance-legend" aria-label="Balance legend">
                             <span><i class="good"></i> good</span><span><i class="avoid"></i> avoid</span><span><i class="woot"></i> standout</span><span><i class="bad"></i> off track</span>
                         </div>
-                    </div>
-                    <div class="graph-container">
-                        <svg id="trend-line-graph" viewBox="0 0 260 110" style="width:100%;height:100%;overflow:visible;">
-                            <polyline id="line-good" fill="none" stroke="#23845e" stroke-width="2.5" points="0,110 260,110"></polyline>
-                            <polyline id="line-avoid" fill="none" stroke="#7954aa" stroke-width="2.5" points="0,110 260,110"></polyline>
-                            <polyline id="line-bad" fill="none" stroke="#bd4b43" stroke-width="2.5" points="0,110 260,110"></polyline>
-                            <polyline id="line-woot" fill="none" stroke="#d28a18" stroke-width="2.5" points="0,110 260,110"></polyline>
-                        </svg>
                     </div>
                     <div class="stats" aria-label="Monthly action statistics">
                         <div class="stat"><div class="stat-label" id="month-good-label">Good</div><div class="stat-value" id="month-good-total">0</div><div class="stat-change" id="month-good-change">No previous month yet</div></div>
@@ -318,7 +306,6 @@
             document.querySelectorAll('[data-count]').forEach(e => e.textContent = c[e.dataset.count]);
             document.getElementById('total').textContent = total;
             renderWeeklyBalance();
-            renderTrendGraph();
             renderStats();
         }
 
@@ -385,29 +372,6 @@
                 return;
             }
             element.textContent = `${difference >= 0 ? '+' : ''}${difference} vs ${previousLabel}`;
-        }
-
-        function renderTrendGraph() {
-            const days = [];
-            for (let offset = 6; offset >= 0; offset--) {
-                const d = new Date(selected);
-                d.setDate(d.getDate() - offset);
-                days.push({ label: d, values: counts(d) });
-            }
-
-            const maxVal = Math.max(...days.flatMap(day => [day.values.good, day.values.avoid, day.values.bad, day.values.woot]), 5);
-            const w = 260, h = 110, pad = 8;
-            const xAt = (index) => {
-                if (days.length === 1) return pad;
-                return pad + (index / (days.length - 1)) * (w - pad * 2);
-            };
-            const yAt = (value) => h - pad - (value / maxVal) * (h - pad * 2);
-
-            const pointsFor = (type) => days.map((day, index) => `${xAt(index)},${yAt(day.values[type])}`).join(' ');
-            document.getElementById('line-good').setAttribute('points', pointsFor('good'));
-            document.getElementById('line-avoid').setAttribute('points', pointsFor('avoid'));
-            document.getElementById('line-bad').setAttribute('points', pointsFor('bad'));
-            document.getElementById('line-woot').setAttribute('points', pointsFor('woot'));
         }
 
         function renderCalendar() {
