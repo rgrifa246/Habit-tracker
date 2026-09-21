@@ -16,6 +16,7 @@
         .backup-controls button{border:1px solid var(--line);border-radius:9px;background:var(--card);padding:7px 9px;cursor:pointer;font:11px Arial,sans-serif}
         .backup-controls button:hover{background:var(--ink);color:#fff}
         .sync-status{color:var(--muted);font:10px Arial,sans-serif;text-align:right;margin-top:6px;max-width:240px}
+        .privacy-note{color:var(--muted);font:10px/1.4 Arial,sans-serif;text-align:right;max-width:240px;margin-top:4px}
         .brand{display:flex;align-items:center;gap:12px}
         .mark{display:flex;gap:3px;width:42px;height:42px;padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
         .mark i{flex:1;border-radius:3px}
@@ -58,6 +59,13 @@
         .analytics-desc{color:var(--muted);font:11px Arial,sans-serif;margin-bottom:12px}
         .graph-container{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:10px 12px 8px;height:180px;position:relative}
         .graph-container svg{display:block;width:100%;height:100%;overflow:visible}
+        .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+        .stat{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+        .stat-label{color:var(--muted);font:10px Arial,sans-serif}
+        .stat-value{font:bold 22px Arial,sans-serif;margin-top:4px}
+        .stat-change{color:var(--good);font:10px Arial,sans-serif;margin-top:3px}
+        .stat-change.down{color:var(--bad)}
+        .notice{position:fixed;right:18px;bottom:18px;z-index:2;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:var(--ink);color:#fff;font:12px Arial,sans-serif;box-shadow:0 8px 20px #31403830}
 
         .calendar{padding:24px}
         .calendar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
@@ -85,6 +93,7 @@
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
     <main class="app">
         <header class="top">
             <div class="brand">
@@ -101,6 +110,7 @@
                     <input id="backup-file" type="file" accept="application/json" hidden>
                 </div>
                 <p class="sync-status" id="sync-status">Only saved on this device</p>
+                <p class="privacy-note">Your entries stay private to your signed-in account.</p>
             </div>
         </header>
         <div class="layout">
@@ -108,7 +118,7 @@
                 <section class="panel actions" aria-labelledby="question">
                     <p class="section-label">Make a note</p>
                     <h2 id="question">How did today go?</h2>
-                    <p class="intro">Tap once to record a moment. Entries stay on this device.</p>
+                    <p class="intro">Tap once to record a moment. Sign in to keep your entries across devices.</p>
                     <div class="buttons">
                         <button id="good" class="action good" data-type="good">
                             <span class="icon">+</span>
@@ -145,6 +155,12 @@
                             <polyline id="line-avoid" fill="none" stroke="#7954aa" stroke-width="2.5" points="0,110 260,110"></polyline>
                             <polyline id="line-bad" fill="none" stroke="#bd4b43" stroke-width="2.5" points="0,110 260,110"></polyline>
                         </svg>
+                    </div>
+                    <div class="stats" aria-label="Period statistics">
+                        <div class="stat"><div class="stat-label" id="current-month-label">This month</div><div class="stat-value" id="current-month-total">0</div><div class="stat-change" id="month-change">No previous month yet</div></div>
+                        <div class="stat"><div class="stat-label" id="previous-month-label">Previous month</div><div class="stat-value" id="previous-month-total">0</div><div class="stat-change">comparison</div></div>
+                        <div class="stat"><div class="stat-label">This week</div><div class="stat-value" id="current-week-total">0</div><div class="stat-change" id="week-change">No previous week yet</div></div>
+                        <div class="stat"><div class="stat-label">Previous week</div><div class="stat-value" id="previous-week-total">0</div><div class="stat-change">comparison</div></div>
                     </div>
                 </section>
             </div>
@@ -222,6 +238,54 @@
             document.querySelectorAll('[data-count]').forEach(e => e.textContent = c[e.dataset.count]);
             document.getElementById('total').textContent = total;
             renderTrendGraph();
+            renderStats();
+        }
+
+        function totalBetween(start, end) {
+            let total = 0;
+            for (const date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+                const c = counts(date);
+                total += c.good + c.avoid + c.bad;
+            }
+            return total;
+        }
+
+        function renderStats() {
+            const monthStart = new Date(shown.getFullYear(), shown.getMonth(), 1);
+            const monthEnd = new Date(shown.getFullYear(), shown.getMonth() + 1, 0);
+            const previousMonthStart = new Date(shown.getFullYear(), shown.getMonth() - 1, 1);
+            const previousMonthEnd = new Date(shown.getFullYear(), shown.getMonth(), 0);
+            const day = selected.getDay();
+            const weekStart = new Date(selected);
+            weekStart.setDate(selected.getDate() - day);
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            const previousWeekStart = new Date(weekStart);
+            previousWeekStart.setDate(weekStart.getDate() - 7);
+            const previousWeekEnd = new Date(weekStart);
+            previousWeekEnd.setDate(weekStart.getDate() - 1);
+            const currentMonth = totalBetween(monthStart, monthEnd);
+            const previousMonth = totalBetween(previousMonthStart, previousMonthEnd);
+            const currentWeek = totalBetween(weekStart, weekEnd);
+            const previousWeek = totalBetween(previousWeekStart, previousWeekEnd);
+            document.getElementById('current-month-label').textContent = monthStart.toLocaleDateString('en-US', { month: 'long' });
+            document.getElementById('previous-month-label').textContent = previousMonthStart.toLocaleDateString('en-US', { month: 'long' });
+            document.getElementById('current-month-total').textContent = currentMonth;
+            document.getElementById('previous-month-total').textContent = previousMonth;
+            document.getElementById('current-week-total').textContent = currentWeek;
+            document.getElementById('previous-week-total').textContent = previousWeek;
+            setChange('month-change', currentMonth - previousMonth, previousMonth);
+            setChange('week-change', currentWeek - previousWeek, previousWeek);
+        }
+
+        function setChange(id, difference, previous) {
+            const element = document.getElementById(id);
+            element.classList.toggle('down', difference < 0);
+            if (!previous && !difference) {
+                element.textContent = 'No previous activity';
+                return;
+            }
+            element.textContent = `${difference >= 0 ? '+' : ''}${difference} vs previous`;
         }
 
         function renderTrendGraph() {
@@ -283,8 +347,9 @@
         async function syncData() {
             if (!currentUser) return;
             try {
+                setSyncStatus('Syncing…');
                 await setDoc(doc(db, 'users', currentUser.uid), { data, updatedAt: serverTimestamp() }, { merge: true });
-                setSyncStatus(`Synced as ${currentUser.displayName || currentUser.email}`);
+                setSyncStatus(`Synced just now as ${currentUser.displayName || currentUser.email}`);
             } catch (error) {
                 console.error('Could not sync data:', error);
                 setSyncStatus('Saved here, but cloud sync failed');
@@ -295,18 +360,29 @@
             try {
                 const snapshot = await getDoc(doc(db, 'users', user.uid));
                 if (snapshot.exists() && snapshot.data().data) {
-                    data = snapshot.data().data;
+                    data = mergeData(data, snapshot.data().data);
                     localStorage.setItem(key, JSON.stringify(data));
-                } else {
-                    await syncData();
                 }
+                await syncData();
                 renderSelected();
                 renderCalendar();
-                setSyncStatus(`Synced as ${user.displayName || user.email}`);
             } catch (error) {
                 console.error('Could not load cloud data:', error);
                 setSyncStatus('Signed in, but cloud sync failed');
             }
+        }
+
+        function mergeData(localData, cloudData) {
+            const merged = { ...cloudData };
+            Object.entries(localData).forEach(([date, localCounts]) => {
+                const cloudCounts = merged[date] || {};
+                merged[date] = {
+                    good: Math.max(Number(localCounts.good) || 0, Number(cloudCounts.good) || 0),
+                    avoid: Math.max(Number(localCounts.avoid) || 0, Number(cloudCounts.avoid) || 0),
+                    bad: Math.max(Number(localCounts.bad) || 0, Number(cloudCounts.bad) || 0)
+                };
+            });
+            return merged;
         }
 
         document.getElementById('sign-in').onclick = async () => {
@@ -337,7 +413,7 @@
 
         function importData(file) {
             const reader = new FileReader();
-            reader.onload = () => {
+            reader.onload = async () => {
                 try {
                     const imported = JSON.parse(reader.result);
                     if (!imported || typeof imported !== 'object' || Array.isArray(imported)) throw new Error('Invalid backup');
@@ -346,21 +422,31 @@
                         return [date, { good: Number(counts.good) || 0, avoid: Number(counts.avoid) || 0, bad: Number(counts.bad) || 0 }];
                     }));
                     localStorage.setItem(key, JSON.stringify(data));
+                    localStorage.setItem(key, JSON.stringify(data));
                     renderSelected();
                     renderCalendar();
-                    alert('Backup imported.');
+                    await syncData();
+                    showNotice('Backup imported successfully.');
                 } catch {
-                    alert('That file is not a valid Threefold backup.');
+                    showNotice('That file is not a valid Threefold backup.');
                 }
             };
             reader.readAsText(file);
+        }
+
+        function showNotice(message) {
+            const notice = document.getElementById('notice');
+            notice.textContent = message;
+            notice.hidden = false;
+            window.clearTimeout(notice.timer);
+            notice.timer = window.setTimeout(() => { notice.hidden = true; }, 3500);
         }
 
         document.getElementById('export-data').onclick = exportData;
         document.getElementById('import-data').onclick = () => document.getElementById('backup-file').click();
         document.getElementById('backup-file').onchange = event => {
             const [file] = event.target.files;
-            if (file) importData(file);
+            if (file && window.confirm('Importing will replace this device’s current entries. Continue?')) importData(file);
             event.target.value = '';
         };
 
@@ -384,8 +470,8 @@
             window.history.replaceState(null, '', window.location.pathname);
         }
 
-        document.getElementById('previous').onclick = () => { shown.setMonth(shown.getMonth() - 1); renderCalendar(); };
-        document.getElementById('next').onclick = () => { shown.setMonth(shown.getMonth() + 1); renderCalendar(); };
+        document.getElementById('previous').onclick = () => { shown.setMonth(shown.getMonth() - 1); renderCalendar(); renderStats(); };
+        document.getElementById('next').onclick = () => { shown.setMonth(shown.getMonth() + 1); renderCalendar(); renderStats(); };
         window.addEventListener('hashchange', handleShortcutTarget);
         renderSelected();
         renderCalendar();
