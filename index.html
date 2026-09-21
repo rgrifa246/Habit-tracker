@@ -41,6 +41,26 @@
 	<script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
+<div class="summary">
+          <div>
+            <div class="total" id="total-count">0</div>
+            <div class="total-caption">actions logged</div>
+          </div>
+          <div style="display: flex; gap: 15px; align-items: flex-end;">
+            <div style="text-align: center;">
+              <div class="count" id="count-good" style="margin-bottom: 4px;">0</div>
+              <div class="bars"><i class="good" id="bar-good" style="height: 5px;"></i></div>
+            </div>
+            <div style="text-align: center;">
+              <div class="count" id="count-avoid" style="margin-bottom: 4px;">0</div>
+              <div class="bars"><i class="avoid" id="bar-avoid" style="height: 5px;"></i></div>
+            </div>
+            <div style="text-align: center;">
+              <div class="count" id="count-bad" style="margin-bottom: 4px;">0</div>
+              <div class="bars"><i class="bad" id="bar-bad" style="height: 5px;"></i></div>
+            </div>
+          </div>
+        </div>
 <script>
   window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
